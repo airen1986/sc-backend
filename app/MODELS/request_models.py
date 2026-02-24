@@ -1,15 +1,10 @@
 from fastapi import APIRouter, Response, Depends, UploadFile, File
-from .new_database import Models_database
-from fastapi import APIRouter, Response, Depends, UploadFile, File
-from .new_database import Models_database
-from fastapi import APIRouter, Response, Depends, UploadFile, File
-from .new_database import Models_database
+from .database import Models_database
 from app.PROJECTS.modals import *
 from app.CORE.utility import *
 from app.CORE.DB import with_master_cursor
 from app.SCHEMA.schema_info import schema_info
 from .models import *
-from fastapi.responses import FileResponse
 from fastapi.responses import FileResponse
 
 Model_router = APIRouter(prefix="/models")

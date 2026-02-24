@@ -22,7 +22,3 @@ SMTP_MAIL = os.getenv("SMTP_MAIL")
 SMTP_PWD = os.getenv("SMTP_PWD")
 master_db = os.getenv("DB_PATH")
 DATA_FOLDER = os.getenv("DATA_FOLDER")
-
-print("MAX_ATTEMPTS =", MAX_ATTEMPTS)
-print("LOCK_TIME_MINUTES =", LOCK_TIME_MINUTES)
-print("reading config file")

@@ -1,6 +1,6 @@
 from app.CORE.connection import master_connection
 from app.CORE.DB import with_master_cursor
-from app.MODELS.new_database import *
+from app.MODELS.database import *
 import time
 
 class PROJECT_COL:
