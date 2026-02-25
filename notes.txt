@@ -7,3 +7,5 @@ Look at "Delete Modal" form, no even font/margins
 Why it cant be moved to "Default" project? empty project is not showing in target project
 make meaningful comments while comitting
 uSE aCCESS tEMPLATES  -- ['Supply Planning', 'Generic Data Model']
+
+No Model updated, when adding same name model from another project to current project

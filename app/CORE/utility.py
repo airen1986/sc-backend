@@ -31,16 +31,11 @@ def verify_user_jwt(token: str, cursor):
     or None if invalid/expired.
     """
     try:
-        print("verifying JWT token")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("payload = ", payload)
         # added - 16-DEC-2025
         token_v = payload["version"]
         email = payload["sub"]
-        print("user_token_v = ", token_v)
-        print("email = ", email)
         token_v_db = Database.get_token_version(cursor, email)
-        print("token_v_db = ", token_v_db)
 
         if not token_v:
             return False
