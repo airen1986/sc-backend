@@ -15,6 +15,7 @@ def init_userDB(cursor):
                 failed_attempts INTEGER DEFAULT 0,
                 locked_until DATETIME DEFAULT NULL,
                 is_active INTEGER DEFAULT 0,
+                AccessTemplates TEXT,
                 CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
                 UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
             )
@@ -139,6 +140,7 @@ def init_ModelsDB(cursor):
                 ModelUID    TEXT    NOT NULL
                             UNIQUE,
                 ModelPath   TEXT,
+                TemplateName TEXT,
                 CreatedAt   TEXT    NOT NULL
                             DEFAULT (datetime('now')),
                 OwnerId     TEXT
@@ -154,6 +156,40 @@ def init_ModelsDB(cursor):
                 LastUsedAt TEXT NOT NULL DEFAULT (datetime('now'))
             )
         """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS S_ModelTemplates (
+                TemplateName               TEXT PRIMARY KEY,
+                TemplateSQL                TEXT NOT NULL,
+                TemplateWithDataSQL        TEXT NOT NULL,
+                CreatedAt    TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+
+        result = cursor.execute(
+            """
+            SELECT 1 FROM S_ModelTemplates
+            WHERE TemplateName = 'Supply Planning'
+            """
+        )
+
+        if result.fetchone() is None:
+            cursor.execute(
+                "INSERT INTO S_ModelTemplates (TemplateName, TemplateSQL, TemplateWithDataSQL) VALUES (?, ?, ?)",
+                ("Supply Planning", "supply_planning.sql", "supply_planning_with_data.sql")
+            )
+        result = cursor.execute(
+            """
+            SELECT 1 FROM S_ModelTemplates
+            WHERE TemplateName = 'Generic Data Model'
+            """
+        )
+
+        if result.fetchone() is None:
+            cursor.execute(
+                "INSERT INTO S_ModelTemplates (TemplateName, TemplateSQL, TemplateWithDataSQL) VALUES (?, ?, ?)",
+                ("Generic Data Model", "generic_data_model.sql", "generic_data_model_with_data.sql")
+            )
 
 def init_UserNotificationDB(cursor):
     
