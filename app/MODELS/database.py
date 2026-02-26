@@ -1,9 +1,8 @@
 import sqlite3
-import sqlite3
 from typing import Optional
 from app.SCHEMA.schema_info import schema_info
 import uuid
-from app.CONFIG.config import DATA_FOLDER
+from app.CONFIG.config import DATA_FOLDER, TEMPLATE_PATH
 import os
 from fastapi import HTTPException, UploadFile,  Depends, File
 from fastapi.responses import FileResponse
@@ -15,6 +14,27 @@ import json
 class Models_database:
 
 #-------------------------- SERVICE METHODS ---------------------
+    
+    @staticmethod
+    def get_user_templates(
+        *,
+        cursor,
+    ):
+        """
+        gets all available templates
+        """
+
+        templates = Models_database.get_all_template_names(cursor)
+
+        if not templates:
+            raise HTTPException(
+                status_code=400,
+                detail="No template found"
+            )
+
+        return templates
+    
+    
     @staticmethod
     def create_model(
         *,
@@ -36,14 +56,22 @@ class Models_database:
 
         # ---------- model creation logic ----------
 
-        if model_template not in schema_info:
-            raise HTTPException(status_code=400, detail="invalid model template")
+        #if model_template not in schema_info:
+        #    raise HTTPException(status_code=400, detail="invalid model template")
 
-        sql_file = (
-            schema_info[model_template]["with_data"]
-            if upload_model_with_sample_data
-            else schema_info[model_template]["without_data"]
+        #sql_file = (
+        #    schema_info[model_template]["with_data"]
+        #    if upload_model_with_sample_data
+        #    else schema_info[model_template]["without_data"]
+        #)
+
+        sql_file_name = Models_database.get_template_file_name(
+            cursor,
+            model_template,
+            upload_model_with_sample_data
         )
+
+        sql_file = f"{TEMPLATE_PATH}/{sql_file_name}"
 
         if not os.path.exists(sql_file):
             raise HTTPException(status_code=500, detail="sql template missing")
@@ -60,6 +88,7 @@ class Models_database:
             project_name,
             db_path,
             owner_email,
+            model_template,
             "owner"
         )
 
@@ -1101,6 +1130,7 @@ class Models_database:
         project_name: str,
         db_path: str,
         user_name: str,
+        Template_Name: str,
         role: str = "owner"
     ):
         
@@ -1117,15 +1147,17 @@ class Models_database:
             INSERT INTO S_Models (
                 ModelUID,
                 ModelPath,
-                OwnerId
+                OwnerId,
+                TemplateName
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?)
             RETURNING ModelId
             """,
             (
                 model_uid,
                 db_path,
-                user_name
+                user_name,
+                Template_Name
             )
         ).fetchone()[0]
 
@@ -1412,3 +1444,31 @@ class Models_database:
         ).fetchone()
 
         return row[0] if row else 0
+
+    
+    @staticmethod
+    def get_all_template_names(cursor):
+        rows = cursor.execute(
+            """
+            SELECT TemplateName
+            FROM S_ModelTemplates
+            """
+        ).fetchall()
+
+        return [row[0] for row in rows] if rows else None
+
+    
+    @staticmethod
+    def get_template_file_name(cursor, template_name, upload_model_with_sample_data):
+        column = "TemplateWithDataSQL" if upload_model_with_sample_data else "TemplateSQL"
+
+        row = cursor.execute(
+            f"""
+            SELECT {column}
+            FROM S_ModelTemplates
+            WHERE TemplateName = ?
+            """,
+            (template_name,)
+        ).fetchone()
+
+        return row[0] if row else None

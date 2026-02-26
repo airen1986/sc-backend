@@ -215,6 +215,9 @@ def run(cursor):
     #cursor.execute("UPDATE S_UserModels SET ModelName = ( SELECT ModelName FROM S_Models WHERE S_Models.ModelId = S_UserModels.ModelId )")
     #cursor.execute("ALTER TABLE S_Models DROP COLUMN ModelName")
     #cursor.execute("DELETE FROM S_UserModels WHERE ModelName IS NULL")
+    
+    #cursor.execute("ALTER TABLE S_Models ADD COLUMN TemplateName TEXT")
+    #cursor.execute("ALTER TABLE S_Users ADD COLUMN AccessTemplates TEXT")
     pass
 
 def with_master_cursor() -> Generator:

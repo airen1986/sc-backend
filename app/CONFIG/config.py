@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
 from pathlib import Path
 
@@ -22,3 +21,4 @@ SMTP_MAIL = os.getenv("SMTP_MAIL")
 SMTP_PWD = os.getenv("SMTP_PWD")
 master_db = os.getenv("DB_PATH")
 DATA_FOLDER = os.getenv("DATA_FOLDER")
+TEMPLATE_PATH = BASE_DIR / "SCHEMA"

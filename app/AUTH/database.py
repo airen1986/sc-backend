@@ -241,7 +241,7 @@ class Database:
         return user if re_hashed == user[USER_COL.PasswordHash] else None
 
     @staticmethod
-    def Create_user(cursor ,display_name, email, password, is_active=0, RoleId=0):
+    def Create_user(cursor ,display_name, email, password, AccessTemplates, is_active=0, RoleId=0):
         hashed = Database.Hash_password(password)
 
         #with master_connection() as cursor:
@@ -254,10 +254,10 @@ class Database:
         cursor.execute(
             """
             INSERT INTO S_Users
-            (UserEmail, RoleId, DisplayName, PasswordHash, PasswordSalt, is_active)
-            VALUES (?, ?, ?, ?, ?, ?)
+            (UserEmail, RoleId, DisplayName, PasswordHash, PasswordSalt, is_active, AccessTemplates)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (email, RoleId, display_name, hashed, Database.fixed_salt, is_active),
+            (email, RoleId, display_name, hashed, Database.fixed_salt, is_active, AccessTemplates),
         )
         return cursor.execute(
             "SELECT * FROM S_Users WHERE UserEmail = ?",

@@ -1,9 +1,9 @@
-Why no notification warning on no notification?
-why state is changing after renaming, model upload
-no error in frontend if procedure errored, why silent error
-"No backups available " instead of "Failed to load backup"
-"Add Existing Model" size not standard one
-Look at "Delete Modal" form, no even font/margins
-Why it cant be moved to "Default" project? empty project is not showing in target project
+Why no notification warning on no notification? - yes
+why state is changing after renaming, model upload - NOT DONE, CANNOT track model after renaming, for that we must fetch modelid of each model, so that we can trace exactlly which model is renamed and set active item in model list accordingly.
+no error in frontend if procedure errored, why silent error - TEST
+"No backups available " instead of "Failed to load backup" - yes
+"Add Existing Model" size not standard one - yse
+Look at "Delete Modal" form, no even font/margins - yes
+Why it cant be moved to "Default" project? empty project is not showing in target project - yes
 make meaningful comments while comitting
-uSE aCCESS tEMPLATES  -- ['Supply Planning', 'Generic Data Model']
+uSE aCCESS tEMPLATES  -- ['Supply Planning', 'Generic Data Model'] - yes

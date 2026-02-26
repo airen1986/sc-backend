@@ -1,10 +1,10 @@
 from app.AUTH.database import Database
 from ..CONFIG.config import SECRET_KEY, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, SECURE_COOKIES
 import jwt
-from fastapi import HTTPException, Cookie, Depends, Response
+from fastapi import HTTPException, Cookie, Depends, Response, Request
 from app.CORE.DB import with_master_cursor
 from datetime import datetime, timezone, timedelta
-
+PUBLIC_PATHS = {"/signup", "/activate"}
 ALGORITHM = "HS256"
 
 def generate_token(token_v, email):
@@ -72,7 +72,11 @@ def get_email_from_jwt(token: str):
         return None   # invalid token
 
 
-def get_current_user_email(response: Response, access_token: str = Cookie(None), cursor = Depends(with_master_cursor),):
+def get_current_user_email(request: Request,response: Response, access_token: str = Cookie(None), cursor = Depends(with_master_cursor),):
+    
+    if request.url.path in PUBLIC_PATHS:
+        return None
+    
     if not access_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 

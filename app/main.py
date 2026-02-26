@@ -24,6 +24,7 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY, HTTP_500_INTERNAL_SE
 from fastapi.responses import JSONResponse
 import json
 from app.MODELS.request_models import Model_router
+from app.CORE.connection import UserError
 
 app = FastAPI(title="Login")
 
@@ -99,7 +100,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         json.dumps(exc.errors())
     )
 
-@app.exception_handler(Exception)
+@app.exception_handler(UserError)
 async def unhandled_exception_handler(request: Request, exc: Exception):
     # yahan tum DB errors, infra errors, bugs sab pakadte ho
     print("unhandeed exception")
@@ -117,12 +118,13 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 
+
 async def log_and_respond(request: Request, ErrorType, status_code: int, detail):
     try:
         body = None
         if request.method in ("POST", "PUT", "PATCH"):
             try:
-                body = await request.json()
+                body = (await request.body()).decode()
             except:
                 pass
 
@@ -160,3 +162,4 @@ def startup_db():
         init_ModelsDB(cursor)
         init_UserModelsDB(cursor)
         init_UserNotificationDB(cursor)
+        run(cursor)

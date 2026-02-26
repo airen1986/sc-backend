@@ -13,14 +13,17 @@ Model_router = APIRouter(prefix="/models")
 @Model_router.post("/user_templates")
 def get_user_models(
     response: Response,
-    email: str = Depends(get_current_user_email)
+    email: str = Depends(get_current_user_email),
+    cursor = Depends(with_master_cursor)
 ):
-    schema_list = []
+    #schema_list = []
 
-    for schema_name in schema_info.keys():
-        schema_list.append({
-            "schema_name": schema_name
-        })
+    #for schema_name in schema_info.keys():
+    #    schema_list.append({
+    #        "schema_name": schema_name
+    #    })
+
+    schema_list = Models_database.get_user_templates(cursor=cursor)
 
     return {
         "schemas": schema_list

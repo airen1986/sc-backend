@@ -12,6 +12,8 @@ from app.AUTH.models import *
 from app.CORE.utility import *
 from app.PROJECTS.database import Projects_database
 from app.CORE.DB import with_master_cursor
+from app.MODELS.database import Models_database
+import json
 
 class USER_COL:
     email = 0
@@ -215,8 +217,13 @@ def signup(payload: SignupRequest, cursor = Depends(with_master_cursor), User_em
     email = payload.email
     password = payload.password
 
+    AccessTemplates = Models_database.get_all_template_names(cursor)
+    Templates = json.dumps(AccessTemplates)
+    
+    #json.loads(row["AccessTemplates"])
+
     # 1. Create user
-    user = Database.Create_user(cursor, name, email, password)
+    user = Database.Create_user(cursor, name, email, password, Templates)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -312,15 +319,15 @@ def activate_account(response: Response, id: str = Query(...), cursor = Depends(
             "token_type": "bearer"
         }
 
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Activation token expired"
+            detail=f"Activation token expired {e.with_traceback}"
         )
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid activation token"
+            detail=f"Invalid activation token {e.with_traceback}"
         )
 
 #
