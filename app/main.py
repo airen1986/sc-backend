@@ -8,7 +8,7 @@ from app.AUTH.JWT_auth_new import new_router
 from fastapi.responses import FileResponse, JSONResponse
 from datetime import datetime, timezone, timedelta
 from fastapi.staticfiles import StaticFiles
-from .CONFIG.config import TEST_MODE, CORS_URL
+from .CONFIG.config import TEST_MODE, CORS_URL, TEMP_FOLDER
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
 from app.ADMIN.admin import router as admin_router
@@ -22,7 +22,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY, HTTP_500_INTERNAL_SERVER_ERROR
 from fastapi.responses import JSONResponse
-import json
+import json, shutil, os
 from app.MODELS.request_models import Model_router
 from app.CORE.connection import UserError
 
@@ -154,6 +154,11 @@ async def log_and_respond(request: Request, ErrorType, status_code: int, detail)
 # -----------------------
 @app.on_event("startup")
 def startup_db():
+    # Clean up temp folder
+    if os.path.exists(TEMP_FOLDER):
+        shutil.rmtree(TEMP_FOLDER)
+    os.makedirs(TEMP_FOLDER, exist_ok=True)
+    
     with master_connection() as cursor:
         init_userDB(cursor)
         init_AdminDB(cursor)

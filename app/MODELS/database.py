@@ -1,15 +1,11 @@
-import sqlite3
+import sqlite3, uuid, os, shutil, json, apsw, tempfile
+from fastapi import HTTPException, UploadFile, Depends, File
 from typing import Optional
 from app.SCHEMA.schema_info import schema_info
-import uuid
-from app.CONFIG.config import DATA_FOLDER, TEMPLATE_PATH
-import os
-from fastapi import HTTPException, UploadFile,  Depends, File
+from app.CONFIG.config import DATA_FOLDER, TEMP_FOLDER, BACKUP_FOLDER
 from fastapi.responses import FileResponse
-import shutil
 from datetime import datetime, timezone
 from .models import *
-import json
 
 class Models_database:
 
@@ -71,7 +67,7 @@ class Models_database:
             upload_model_with_sample_data
         )
 
-        sql_file = f"{TEMPLATE_PATH}/{sql_file_name}"
+        sql_file = f"{TEMP_FOLDER}/{sql_file_name}"
 
         if not os.path.exists(sql_file):
             raise HTTPException(status_code=500, detail="sql template missing")
@@ -275,7 +271,9 @@ class Models_database:
 
         # 3. Copy DB file
         try:
-            shutil.copyfile(old_db_path, new_db_path)
+            connection = apsw.Connection(old_db_path)
+            connection.execute(f"VACUUM INTO '{new_db_path}'")
+            connection.close()
         except Exception as e:
             raise HTTPException(
                 status_code=500,
@@ -467,9 +465,16 @@ class Models_database:
                 detail=f"Model file not found on server at {model_path}"
             )
 
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".db", dir=TEMP_FOLDER)
+        tmp.close()  # Close the file so that it can be used by other processes
+
+        connection = apsw.Connection(model_path)
+        connection.execute(f"VACUUM INTO '{tmp.name}'")
+        connection.close()
+
         # 3. Return file
         return FileResponse(
-            path=model_path,
+            path=tmp.name,
             filename=f"{model_name}.db",
             media_type="application/octet-stream"
         )
@@ -489,16 +494,9 @@ class Models_database:
         model_name = payload.model_name.strip()
         project_name = payload.project_name.strip()
 
-        # 1. File validation
-        if not file.filename or not file.filename.lower().endswith(".db"):
-            raise HTTPException(
-                status_code=400,
-                detail="Only .db files are allowed"
-            )
-
 
         # 2. Duplicate model check
-        model_id, old_model_path = Models_database.get_model_id_and_path(
+        model_id, model_path = Models_database.get_model_id_and_path(
             cursor,
             model_name,
             project_name,
@@ -512,11 +510,21 @@ class Models_database:
             )
 
         # 3. Save file to disk
-        try:
-            with open(old_model_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-        finally:
-            file.file.close()
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".db", dir=TEMP_FOLDER)
+        tmp.close()  # Close the file so that it can be used by other processes
+
+        with open(tmp.name, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        backup_connection = apsw.Connection(tmp.name)
+
+        this_connection = apsw.Connection(model_path)
+
+        with this_connection.backup("main", backup_connection, "main") as backup:
+             backup.step()  # copy entire database in one step
+
+        this_connection.close()
+        backup_connection.close()
 
 
         return {
@@ -582,11 +590,8 @@ class Models_database:
         else:
             backup_no = count + 1
 
-        backup_root = os.path.join(os.getcwd(), "BACKUP")
-        os.makedirs(backup_root, exist_ok=True)
-
         backup_filename = f"{project_name}_{model_name}_{backup_no}.db"
-        backup_path = os.path.join(backup_root, backup_filename)
+        backup_path = os.path.join(BACKUP_FOLDER, backup_filename)
         
         backup_id = Models_database.model_backup(
             cursor,
@@ -602,7 +607,9 @@ class Models_database:
             )
 
 
-        shutil.copy2(model_path, backup_path)
+        connection = apsw.Connection(model_path)
+        connection.execute(f"VACUUM INTO '{backup_path}'")
+        connection.close()
 
         return {
             "message": "model backed up successfully",
@@ -664,13 +671,15 @@ class Models_database:
 
         if not os.path.exists(backup_path):
             raise FileNotFoundError("Backup file missing on disk")
+        
+        backup_connection = apsw.Connection(backup_path)
+        this_connection = apsw.Connection(model_path)
 
-        os.makedirs(DATA_FOLDER, exist_ok=True)
+        with this_connection.backup("main", backup_connection, "main") as backup:
+             backup.step()  # copy entire database in one step
 
-        restored_filename = os.path.basename(backup_path)
-        restored_path = os.path.join(DATA_FOLDER, restored_filename)
-
-        shutil.copy2(backup_path, restored_path)
+        this_connection.close()
+        backup_connection.close()
 
         return {
             "message": "model restored successfully",
