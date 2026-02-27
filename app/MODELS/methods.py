@@ -35,7 +35,7 @@ class Models_database:
     def add_new_model(
         *,
         cursor,
-        payload: AddModelRequest,
+        payload: AddNewModelPayload,
         owner_email: str
     ) -> dict:
         """
@@ -121,7 +121,7 @@ class Models_database:
     def add_existing_model(
         *,
         cursor,
-        payload: AssignModelsRequest,
+        payload: AddExistingModelPayload,
         owner_email: str
     ) -> dict:
         """
@@ -232,7 +232,7 @@ class Models_database:
     def save_as_model(
         *,
         cursor,
-        payload: SaveAsModelRequest,
+        payload: SaveAsModelPayload,
         owner_email: str
     ) -> dict:
         """
@@ -313,7 +313,7 @@ class Models_database:
     def rename_model(
         *,
         cursor,
-        payload: RenameModelRequest,
+        payload: RenameModelPayload,
         owner_email: str
     ) -> dict:
         """
@@ -374,7 +374,7 @@ class Models_database:
     def delete_model(
         *,
         cursor,
-        payload: DeleteModelRequest,
+        payload: DeleteModelPayload,
         owner_email: str
     ) -> dict:
         """
@@ -405,7 +405,7 @@ class Models_database:
     def move_model_to_project(
         *,
         cursor,
-        payload: MoveModelToProjectRequest,
+        payload: MoveModelToProjectPayload,
         owner_email: str
     ) -> dict:
         """
@@ -437,7 +437,7 @@ class Models_database:
     def download_model(
         *,
         cursor,
-        payload: DownloadModelRequest,
+        payload: DownloadModelPayload,
         owner_email: str
     ):
         """
@@ -540,7 +540,7 @@ class Models_database:
 
 
     @staticmethod
-    def BackupModel(
+    def backup_model(
         *,
         cursor,
         payload: BackupModelPayload ,
@@ -622,7 +622,7 @@ class Models_database:
         }
 
     @staticmethod
-    def RestoreModel(
+    def restore_model(
         *,
         cursor,
         payload: RestoreModelPayload , # add Backup_id - DONE
@@ -693,7 +693,7 @@ class Models_database:
 
 
     @staticmethod
-    def ShareModel(
+    def share_model(
         *,
         cursor,
         payload: ShareModelPayload,

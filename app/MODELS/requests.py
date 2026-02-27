@@ -14,7 +14,7 @@ Model_router = APIRouter(prefix="/models")
 # Either both should have _ or both should be camel case. 
 
 @Model_router.post("/user_templates")
-def get_user_models(
+def get_user_templates( #change name - DONE
     response: Response,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -28,7 +28,7 @@ def get_user_models(
 
 @Model_router.post("/add_new_model")
 def add_new_model(
-    payload: AddModelRequest,  #to be changed to AddNewModelRequest
+    payload: AddNewModelPayload,  #to be changed to AddNewModelPayload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -40,11 +40,9 @@ def add_new_model(
 
     
 
-    
-
 @Model_router.post("/add_existing_model")
 def add_existing_model(
-    payload: AssignModelsRequest, #to be changed to AddExistingModelRequest
+    payload: AddExistingModelPayload, #to be changed to AddExistingModelPayload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -83,7 +81,7 @@ def get_user_models_by_project(
 
 @Model_router.post("/save_as_model")
 def save_as_model(
-    payload: SaveAsModelRequest,
+    payload: SaveAsModelPayload, #payload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -98,7 +96,7 @@ def save_as_model(
 #
 @Model_router.post("/rename_model")
 def rename_model(
-    payload: RenameModelRequest,
+    payload: RenameModelPayload, #payload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -112,7 +110,7 @@ def rename_model(
 
 @Model_router.post("/delete_model")
 def delete_model(
-    payload: DeleteModelRequest,
+    payload: DeleteModelPayload, #payload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -124,9 +122,9 @@ def delete_model(
 
 
 
-@Model_router.post("/move_to_project") #to be changed to move_model_to_project
+@Model_router.post("/move_model_to_project") #to be changed to /move_model_to_project - DONE
 def move_model_to_project(
-    payload: MoveModelToProjectRequest, 
+    payload: MoveModelToProjectPayload,  #payload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -139,7 +137,7 @@ def move_model_to_project(
 
 @Model_router.post("/download_model", response_class=FileResponse)
 def download_model(
-    payload: DownloadModelRequest,
+    payload: DownloadModelPayload, #payload - DONE
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -151,7 +149,7 @@ def download_model(
 
 
 
-@Model_router.post("/upload") #to be changed to upload_model
+@Model_router.post("/upload_model") #to be changed to /upload_model - DONE
 def upload_model(
     payload: UploadModelPayload = Depends(upload_payload),
     file: UploadFile = File(...),
@@ -170,47 +168,48 @@ def upload_model(
 
 
 
-@Model_router.post("/Backup") #to be changed to backup_model
-def upload_model(    #name changes??
+@Model_router.post("/backup_model") #to be changed to /backup_model - DONE
+def Backup_Model(    #name changes?? Backup_MOdel - DONE
     payload: BackupModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
 
-    return Models_database.BackupModel(
+    return Models_database.backup_model( #backup_model - DONE
         cursor=cursor,
         payload=payload,
         owner_email=email
     )
 
-@Model_router.post("/Restore") #to be changed to restore_model
-def upload_model(
+
+@Model_router.post("/restore_model") #to be changed to /restore_model - DONE
+def restore_model( #restore_model - DONE
     payload: RestoreModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
 
-    return Models_database.RestoreModel( # to be changed to restore_model
+    return Models_database.restore_model( # to be changed to restore_model - DONE
         cursor=cursor,
         payload=payload,
         owner_email=email
     )    
 
 
-@Model_router.post("/Share") #to be changed to share_model
+@Model_router.post("/share_model") #to be changed to /share_model - DONE
 def share_model(
     payload: ShareModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.ShareModel( #to be changed to share_model
+    return Models_database.share_model( #to be changed to share_model
         cursor=cursor,
         payload=payload,
         owner_email=email
     )
 
 
-@Model_router.post("/Get_Notifications")
+@Model_router.post("/get_notifications") #/get_notifications - DONE
 def Get_Notifications(
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -220,7 +219,8 @@ def Get_Notifications(
         owner_email=email
     )
 
-@Model_router.post("/Is_Accepted")
+
+@Model_router.post("/is_accepted") #/is_accepted - DONE
 def is_share_model_request_accepted(
     payload: IsAcceptedModelPayload,
     email: str = Depends(get_current_user_email),
@@ -232,7 +232,8 @@ def is_share_model_request_accepted(
         owner_email=email
     )   
 
-@Model_router.post("/Get_Model_Backups")
+
+@Model_router.post("/get_model_backups") #/get_model_backups - DONE
 def get_model_backups(
     payload: ModelBackupPayload,
     email: str = Depends(get_current_user_email),
@@ -244,7 +245,8 @@ def get_model_backups(
         owner_email=email
     )
 
-@Model_router.post("/Get_all_user_emails")
+
+@Model_router.post("/get_all_user_emails") #/get_all_user_emails - DONE
 def get_model_backups(
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -256,7 +258,7 @@ def get_model_backups(
 
 
 #added
-@Model_router.post("/Reject_Model_Share")
+@Model_router.post("/reject_model_share") #/reject_model_share - DONE
 def Reject_Request_For_Model_Share(
     payload: RejectModelSharePayload,
     email: str = Depends(get_current_user_email),
@@ -271,7 +273,7 @@ def Reject_Request_For_Model_Share(
     
 
 #added
-@Model_router.post("/Cancel_Model_Share")
+@Model_router.post("/cancel_model_share") #/cancel_model_share - DONE
 def Cancel_Request_For_Model_Share(
     payload: CancelModelSharePayload,
     email: str = Depends(get_current_user_email),

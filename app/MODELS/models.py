@@ -26,35 +26,35 @@ class ModelProjectPayload(NonEmptyStrModel):
 class NotificationIdPayload(NonEmptyStrModel):
     notification_id: str
 
-class AddModelRequest(ModelProjectPayload):
+class AddNewModelPayload(ModelProjectPayload):
     model_template: str
     upload_model_with_sample_data: bool
 
 
     
-class AssignModelsRequest(NonEmptyStrModel):
+class AddExistingModelPayload(NonEmptyStrModel):
     target_project: str
     models_by_project: Dict[str, List[str]]
 
 
-class SaveAsModelRequest(ModelProjectPayload):
+class SaveAsModelPayload(ModelProjectPayload):
     new_model_name: str
     Save_as_From_User_Email: str
 
 
-class RenameModelRequest(ModelProjectPayload):
+class RenameModelPayload(ModelProjectPayload):
     new_model_name: str
     
 
-class DeleteModelRequest(ModelProjectPayload):
+class DeleteModelPayload(ModelProjectPayload):
     pass
     
 
-class MoveModelToProjectRequest(ModelProjectPayload):
+class MoveModelToProjectPayload(ModelProjectPayload):
     current_project_name: str
     
 
-class DownloadModelRequest(ModelProjectPayload):
+class DownloadModelPayload(ModelProjectPayload):
     pass
     
 class UploadModelPayload(ModelProjectPayload):
