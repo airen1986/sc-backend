@@ -8,7 +8,9 @@ from app.CORE.DB import with_master_cursor
 from ..CONFIG.config import (
     MAX_ATTEMPTS,
     LOCK_TIME_MINUTES,
-    SMTP_MAIL,
+    SMTP_URL,
+    SMTP_PORT,
+    SMTP_USER,
     SMTP_PWD,
 )
 
@@ -323,9 +325,9 @@ class Database:
     def send_email_with_message(to_email, message, subject_str):
         msg = MIMEText(message)
         msg["Subject"] = subject_str
-        msg["From"] = SMTP_MAIL
+        msg["From"] = "SCL Team <{}>".format(SMTP_USER)
         msg["To"] = to_email
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(SMTP_MAIL, SMTP_PWD)
+        with smtplib.SMTP_SSL(SMTP_URL, SMTP_PORT) as server:
+            server.login(SMTP_USER, SMTP_PWD)
             server.send_message(msg)

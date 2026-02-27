@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Response, Depends, UploadFile, File
-from .database import Models_database
+from .methods import Models_database
 from app.PROJECTS.modals import *
 from app.CORE.utility import *
 from app.CORE.DB import with_master_cursor
@@ -9,6 +9,9 @@ from fastapi.responses import FileResponse
 
 Model_router = APIRouter(prefix="/models")
 
+# make all endpoint requests as camel case, to be consistent with frontend. 
+# Also, make the function names consistent with the endpoint names. 
+# Either both should have _ or both should be camel case. 
 
 @Model_router.post("/user_templates")
 def get_user_models(
@@ -16,12 +19,6 @@ def get_user_models(
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    #schema_list = []
-
-    #for schema_name in schema_info.keys():
-    #    schema_list.append({
-    #        "schema_name": schema_name
-    #    })
 
     schema_list = Models_database.get_user_templates(cursor=cursor)
 
@@ -31,11 +28,11 @@ def get_user_models(
 
 @Model_router.post("/add_new_model")
 def add_new_model(
-    payload: AddModelRequest,
+    payload: AddModelRequest,  #to be changed to AddNewModelRequest
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.create_model(
+    return Models_database.add_new_model(
         cursor=cursor,
         payload=payload,
         owner_email=email
@@ -47,11 +44,11 @@ def add_new_model(
 
 @Model_router.post("/add_existing_model")
 def add_existing_model(
-    payload: AssignModelsRequest,
+    payload: AssignModelsRequest, #to be changed to AddExistingModelRequest
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.assign_existing_models(
+    return Models_database.add_existing_model(
         cursor=cursor,
         payload=payload,
         owner_email=email
@@ -77,7 +74,7 @@ def get_user_models_by_project(
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.get_user_models_grouped_by_project(
+    return Models_database.get_user_models_by_project(
         cursor=cursor,
         user_email=email
     )
@@ -127,13 +124,13 @@ def delete_model(
 
 
 
-@Model_router.post("/move_to_project")
+@Model_router.post("/move_to_project") #to be changed to move_model_to_project
 def move_model_to_project(
-    payload: MoveModelToProjectRequest,
+    payload: MoveModelToProjectRequest, 
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.move_model_to_project(
+    return Models_database.move_model_to_project( 
         cursor=cursor,
         payload=payload,
         owner_email=email
@@ -154,7 +151,7 @@ def download_model(
 
 
 
-@Model_router.post("/upload")
+@Model_router.post("/upload") #to be changed to upload_model
 def upload_model(
     payload: UploadModelPayload = Depends(upload_payload),
     file: UploadFile = File(...),
@@ -169,8 +166,12 @@ def upload_model(
     )
 
 
-@Model_router.post("/Backup")
-def upload_model(
+# Kahin per payload, kahin pe Model, thoda consistent karna hoga. Payload zyada sahi lagta h.
+
+
+
+@Model_router.post("/Backup") #to be changed to backup_model
+def upload_model(    #name changes??
     payload: BackupModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -182,27 +183,27 @@ def upload_model(
         owner_email=email
     )
 
-@Model_router.post("/Restore")
+@Model_router.post("/Restore") #to be changed to restore_model
 def upload_model(
     payload: RestoreModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
 
-    return Models_database.RestoreModel(
+    return Models_database.RestoreModel( # to be changed to restore_model
         cursor=cursor,
         payload=payload,
         owner_email=email
     )    
 
 
-@Model_router.post("/Share")
+@Model_router.post("/Share") #to be changed to share_model
 def share_model(
     payload: ShareModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.ShareModel(
+    return Models_database.ShareModel( #to be changed to share_model
         cursor=cursor,
         payload=payload,
         owner_email=email

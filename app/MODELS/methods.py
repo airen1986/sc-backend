@@ -32,7 +32,7 @@ class Models_database:
     
     
     @staticmethod
-    def create_model(
+    def add_new_model(
         *,
         cursor,
         payload: AddModelRequest,
@@ -67,7 +67,11 @@ class Models_database:
             upload_model_with_sample_data
         )
 
-        sql_file = f"{TEMP_FOLDER}/{sql_file_name}"
+        this_parent_dir = os.path.dirname(os.path.abspath(__file__))
+        this_parent_dir = os.path.dirname(this_parent_dir)
+        schema_dir = os.path.join(this_parent_dir, "SCHEMA")
+
+        sql_file = os.path.join(schema_dir, sql_file_name)
 
         if not os.path.exists(sql_file):
             raise HTTPException(status_code=500, detail="sql template missing")
@@ -114,7 +118,7 @@ class Models_database:
 
 
     @staticmethod
-    def assign_existing_models(
+    def add_existing_model(
         *,
         cursor,
         payload: AssignModelsRequest,
@@ -196,7 +200,7 @@ class Models_database:
         }
 
     @staticmethod
-    def get_user_models_grouped_by_project(
+    def get_user_models_by_project(
         *,
         cursor,
         user_email: str

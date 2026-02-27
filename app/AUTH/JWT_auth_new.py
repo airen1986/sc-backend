@@ -12,7 +12,7 @@ from app.AUTH.models import *
 from app.CORE.utility import *
 from app.PROJECTS.database import Projects_database
 from app.CORE.DB import with_master_cursor
-from app.MODELS.database import Models_database
+from app.MODELS.methods import Models_database
 import json
 
 class USER_COL:

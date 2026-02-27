@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY, HTTP_500_INTERNAL_SERVER_ERROR
 from fastapi.responses import JSONResponse
 import json, shutil, os
-from app.MODELS.request_models import Model_router
+from app.MODELS.requests import Model_router
 from app.CORE.connection import UserError
 
 app = FastAPI(title="Login")

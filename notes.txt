@@ -7,3 +7,6 @@ Look at "Delete Modal" form, no even font/margins - yes
 Why it cant be moved to "Default" project? empty project is not showing in target project - yes
 make meaningful comments while comitting
 uSE aCCESS tEMPLATES  -- ['Supply Planning', 'Generic Data Model'] - yes
+
+
+No totality, when accepting notifictaion of a shared model?
