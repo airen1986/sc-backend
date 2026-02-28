@@ -13,7 +13,7 @@ Model_router = APIRouter(prefix="/models")
 # Also, make the function names consistent with the endpoint names. 
 # Either both should have _ or both should be camel case. 
 
-@Model_router.post("/user_templates")
+@Model_router.post("/get_user_templates") 
 def get_user_templates( #change name - DONE
     response: Response,
     email: str = Depends(get_current_user_email),
@@ -151,7 +151,7 @@ def download_model(
 
 @Model_router.post("/upload_model") #to be changed to /upload_model - DONE
 def upload_model(
-    payload: UploadModelPayload = Depends(upload_payload),
+    payload: UploadModelPayload = Depends(UploadPayload),
     file: UploadFile = File(...),
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -169,7 +169,7 @@ def upload_model(
 
 
 @Model_router.post("/backup_model") #to be changed to /backup_model - DONE
-def Backup_Model(    #name changes?? Backup_MOdel - DONE
+def backup_model(    #name changes?? Backup_MOdel - DONE
     payload: BackupModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -210,23 +210,23 @@ def share_model(
 
 
 @Model_router.post("/get_notifications") #/get_notifications - DONE
-def Get_Notifications(
+def get_notifications(
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.Get_Notifications(
+    return Models_database.get_notifications(
         cursor=cursor,
         owner_email=email
     )
 
 
-@Model_router.post("/is_accepted") #/is_accepted - DONE
-def is_share_model_request_accepted(
+@Model_router.post("/accept_model_share") #/is_accepted - DONE
+def accept_model_share(
     payload: IsAcceptedModelPayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
-    return Models_database.is_share_model_request_accepted(
+    return Models_database.accept_model_share(
         cursor=cursor,
         payload=payload,
         owner_email=email
@@ -247,7 +247,7 @@ def get_model_backups(
 
 
 @Model_router.post("/get_all_user_emails") #/get_all_user_emails - DONE
-def get_model_backups(
+def get_all_user_emails(
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
@@ -259,13 +259,13 @@ def get_model_backups(
 
 #added
 @Model_router.post("/reject_model_share") #/reject_model_share - DONE
-def Reject_Request_For_Model_Share(
+def reject_model_share(
     payload: RejectModelSharePayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
 
-    return Models_database.Reject_Request_For_Model_Share(
+    return Models_database.reject_model_share(
         payload= payload,
         cursor=cursor,
         current_user_email=email
@@ -274,13 +274,13 @@ def Reject_Request_For_Model_Share(
 
 #added
 @Model_router.post("/cancel_model_share") #/cancel_model_share - DONE
-def Cancel_Request_For_Model_Share(
+def cancel_model_share(
     payload: CancelModelSharePayload,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
 
-    return Models_database.Cancel_Request_For_Model_Share(
+    return Models_database.cancel_model_share(
         payload= payload,
         cursor=cursor,
         current_user_email=email

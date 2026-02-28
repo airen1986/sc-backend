@@ -242,9 +242,9 @@ class Models_database:
         existing_name = payload.model_name.strip()
         new_name = payload.new_model_name.strip()
         project_name = payload.project_name.strip()
-        Save_as_From_User_Email = payload.Save_as_From_User_Email.strip()
+        save_as_from_user_email = payload.save_as_from_user_email.strip()
 
-        is_user_email = Models_database.valid_email(Save_as_From_User_Email)
+        is_user_email = Models_database.valid_email(save_as_from_user_email)
 
         # 1. Resolve existing model + path
         model_id, model_path = Models_database.get_model_id_and_path(
@@ -252,7 +252,7 @@ class Models_database:
             existing_name,
             project_name,
             #owner_email
-            Save_as_From_User_Email if is_user_email else owner_email
+            save_as_from_user_email if is_user_email else owner_email
         )
 
         if not model_id:
@@ -487,7 +487,7 @@ class Models_database:
     def upload_model(
         *,
         cursor,
-        payload: UploadModelPayload = Depends(upload_payload),
+        payload: UploadModelPayload = Depends(UploadPayload),
         file: UploadFile = File(...),
         owner_email: str
     ) -> dict:
@@ -773,7 +773,7 @@ class Models_database:
 
 
     @staticmethod
-    def Get_Notifications(
+    def get_notifications(
         *,
         cursor,
         owner_email: str
@@ -794,7 +794,7 @@ class Models_database:
 
 
     @staticmethod
-    def is_share_model_request_accepted(
+    def accept_model_share(
         *,
         cursor,
         payload: IsAcceptedModelPayload,
@@ -805,7 +805,7 @@ class Models_database:
         project_name = payload.project_name
         model_name = payload.model_name
         current_project = payload.new_project
-        From_user_email = payload.From_user_email
+        from_user_email = payload.from_user_email
 
         # check if model already exist for new user
         model_id, model_path = Models_database.get_model_id_and_path(
@@ -826,7 +826,7 @@ class Models_database:
             cursor,
             model_name,
             project_name,
-            From_user_email
+            from_user_email
         )
 
         #get project id of current active project of user
@@ -916,7 +916,7 @@ class Models_database:
 
 
     @staticmethod
-    def Reject_Request_For_Model_Share(
+    def reject_model_share(
         *,
         cursor,
         payload: RejectModelSharePayload,
@@ -947,7 +947,7 @@ class Models_database:
     
     #added
     @staticmethod
-    def Cancel_Request_For_Model_Share(
+    def cancel_model_share(
         *,
         cursor,
         payload: CancelModelSharePayload,
