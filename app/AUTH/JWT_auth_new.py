@@ -12,7 +12,7 @@ from app.AUTH.models import *
 from app.CORE.utility import *
 from app.PROJECTS.database import Projects_database
 from app.CORE.DB import with_master_cursor
-from app.MODELS.methods import Models_database
+from app.MODELS.methods import get_all_template_names
 import json
 
 class USER_COL:
@@ -217,7 +217,7 @@ def signup(payload: SignupRequest, cursor = Depends(with_master_cursor), User_em
     email = payload.email
     password = payload.password
 
-    AccessTemplates = Models_database.get_all_template_names(cursor)
+    AccessTemplates = get_all_template_names.get_all_template_names(cursor)
     Templates = json.dumps(AccessTemplates)
     
     #json.loads(row["AccessTemplates"])

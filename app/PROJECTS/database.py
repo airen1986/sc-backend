@@ -1,6 +1,6 @@
 from app.CORE.connection import master_connection
 from app.CORE.DB import with_master_cursor
-from app.MODELS.methods import *
+from app.MODELS.methods import delete_model_
 import time
 
 class PROJECT_COL:
@@ -185,7 +185,7 @@ class Projects_database:
 
             for (model,) in models:
                 time.sleep(0.2)
-                result = Models_database.delete_model_(cursor, user_email, model, project_name)
+                result = delete_model_(cursor, user_email, model, project_name)
 
             if result == 0:
                 return None

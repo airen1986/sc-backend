@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Response, Depends, UploadFile, File
-from .methods import Models_database
+from . import methods as Models_database
 from app.PROJECTS.modals import *
 from app.CORE.utility import *
 from app.CORE.DB import with_master_cursor
