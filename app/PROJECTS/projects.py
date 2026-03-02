@@ -43,9 +43,9 @@ def get_user_projects(
 # -------------------------
 # CREATE PROJECT
 # -------------------------
-@router.post("/")
-def create_project_route(
-    payload: CreateProjectRequest,
+@router.post("/create_project")
+def create_project(
+    payload: CreateProjectPayload,
     response: Response,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -75,9 +75,9 @@ def create_project_route(
 # -------------------------
 # OPEN PROJECT
 # -------------------------
-@router.post("/open")
-def open_project_route(
-    payload: OpenProjectRequest,
+@router.post("/open_project") #change to /open_project
+def open_project(
+    payload: OpenProjectPayload,
     response: Response,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -104,9 +104,9 @@ def open_project_route(
 # -------------------------
 # RENAME PROJECT
 # -------------------------
-@router.post("/rename")
-def rename_project_route(
-    payload: RenameProjectRequest,
+@router.post("/rename_project")
+def rename_project(
+    payload: RenameProjectPayload,
     response: Response,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -138,9 +138,9 @@ def rename_project_route(
 # -------------------------
 # DELETE PROJECT
 # -------------------------
-@router.post("/delete")
-def delete_project_route(
-    payload: DeleteProjectRequest,
+@router.post("/delete_project")
+def delete_project(
+    payload: DeleteProjectPayload,
     response: Response,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
@@ -165,9 +165,9 @@ def delete_project_route(
 # -------------------------
 # CHANGE PROJECT
 # -------------------------
-@router.post("/change")
-def change_project_route(
-    payload: ChangeProjectRequest,
+@router.post("/change_project")
+def change_project(
+    payload: ChangeProjectPayload,
     response: Response,
     email: str = Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)

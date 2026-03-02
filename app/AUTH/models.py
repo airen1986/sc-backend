@@ -1,26 +1,26 @@
 from pydantic import BaseModel, EmailStr
 
-class LoginRequest(BaseModel):
+class LoginPayload(BaseModel):
     email: EmailStr
     password: str
 
-class SignupRequest(BaseModel):
+class SignupPayload(BaseModel):
     name: str
     email: EmailStr
     password: str
 
-class ForgotPasswordRequest(BaseModel):
+class ForgotPasswordPayload(BaseModel):
     email: EmailStr
 
-class ResetPasswordRequest(BaseModel):
+class ResetPasswordPayload(BaseModel):
     email: EmailStr
     reset_token: str
     new_password: str
 
-class ChangePasswordRequest(BaseModel):
+class ChangePasswordPayload(BaseModel):
     current_password: str
     new_password: str
 
-class ResetPasswordCombinedRequest(BaseModel):
+class ResetPasswordCombinedPayload(BaseModel):
     reset_token: str
     new_password: str

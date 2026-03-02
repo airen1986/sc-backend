@@ -86,7 +86,7 @@ def refresh_Token(token_v: str, email: str):
 # Login/Logout
 
 @new_router.post("/login")
-def login(payload: LoginRequest, response: Response, cursor = Depends(with_master_cursor)):
+def login(payload: LoginPayload, response: Response, cursor = Depends(with_master_cursor)):
     
     #User_email: str = Depends(get_current_user_email)
 
@@ -205,7 +205,7 @@ def Logout(request: Request, response: Response, cursor = Depends(with_master_cu
 # Signup
 
 @new_router.post("/signup")
-def signup(payload: SignupRequest, cursor = Depends(with_master_cursor), User_email: str = Depends(get_current_user_email)):
+def signup(payload: SignupPayload, cursor = Depends(with_master_cursor), User_email: str = Depends(get_current_user_email)):
     
     if User_email:
         raise HTTPException(
@@ -253,7 +253,7 @@ def signup(payload: SignupRequest, cursor = Depends(with_master_cursor), User_em
     }
 
 
-@new_router.get("/activate")
+@new_router.get("/activate_account") # change to /activate_account
 def activate_account(response: Response, id: str = Query(...), cursor = Depends(with_master_cursor), User_email: str = Depends(get_current_user_email)):
     try:
 
@@ -335,7 +335,7 @@ def activate_account(response: Response, id: str = Query(...), cursor = Depends(
 # Forgot password
 
 @new_router.post("/forgot-password")
-def forgot_password(payload: ForgotPasswordRequest, cursor = Depends(with_master_cursor)):
+def forgot_password(payload: ForgotPasswordPayload, cursor = Depends(with_master_cursor)):
     email = payload.email
 
     # Optional: user existence check (recommended)
@@ -367,7 +367,7 @@ def forgot_password(payload: ForgotPasswordRequest, cursor = Depends(with_master
     }
 
 @new_router.get("/forgot-password/verify")
-def verify_reset_code( id: str = Query(...), cursor = Depends(with_master_cursor)):
+def forgot_password_verify( id: str = Query(...), cursor = Depends(with_master_cursor)):
     record = Database.verification_code_operations(cursor, "get", id)
 
     if not record:
@@ -385,7 +385,7 @@ def verify_reset_code( id: str = Query(...), cursor = Depends(with_master_cursor
     }
 
 @new_router.post("/reset-password")
-def reset_password( payload: ResetPasswordRequest, cursor = Depends(with_master_cursor)):
+def reset_password( payload: ResetPasswordPayload, cursor = Depends(with_master_cursor)):
     email = payload.email
     reset_token = payload.reset_token
     new_password = payload.new_password
@@ -433,7 +433,7 @@ def reset_password( payload: ResetPasswordRequest, cursor = Depends(with_master_
 
 # added new 26-Dec-2025
 @new_router.post("/reset-password/combined")
-def reset_password_combined( response: Response, payload: ResetPasswordCombinedRequest, cursor = Depends(with_master_cursor)):
+def reset_password_combined( response: Response, payload: ResetPasswordCombinedPayload, cursor = Depends(with_master_cursor)):
     reset_token = payload.reset_token
     new_password = payload.new_password
 
@@ -495,9 +495,9 @@ def reset_password_combined( response: Response, payload: ResetPasswordCombinedR
 # Update password
 
 @new_router.post("/password/update")
-def change_password(
+def update_password(
     response: Response,
-    payload: ChangePasswordRequest,
+    payload: ChangePasswordPayload,
     user=Depends(get_current_user_email),
     cursor = Depends(with_master_cursor)
 ):
