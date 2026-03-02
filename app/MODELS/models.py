@@ -10,7 +10,7 @@ class NonEmptyStrModel(BaseModel):
     @classmethod
     def strip_and_validate(cls, v, info: ValidationInfo):
 
-        if info.field_name == "Save_as_From_User_Email":
+        if info.field_name == "save_as_from_user_email":
             return v
 
         if isinstance(v, str):
@@ -39,7 +39,7 @@ class AddExistingModelPayload(NonEmptyStrModel):
 
 class SaveAsModelPayload(ModelProjectPayload):
     new_model_name: str
-    Save_as_From_User_Email: str
+    save_as_from_user_email: str
 
 
 class RenameModelPayload(ModelProjectPayload):
@@ -61,7 +61,7 @@ class UploadModelPayload(ModelProjectPayload):
     pass
 
 
-def upload_payload(
+def UploadPayload(
     model_name: str = Form(...),
     project_name: str = Form(...)
     ):
@@ -89,7 +89,7 @@ class ModelBackupPayload(ModelProjectPayload):
 class IsAcceptedModelPayload(ModelProjectPayload):
     notification_id: str
     new_project: str    
-    From_user_email: str
+    from_user_email: str
 
 
 class RejectModelSharePayload(NotificationIdPayload):
