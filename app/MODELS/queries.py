@@ -79,5 +79,8 @@ add_user_notifications = """INSERT INTO S_UserNotifications (
 
 read_notification = "UPDATE S_UserNotifications SET IsRead = 1 WHERE NotificationId = ? AND ToUserEmail = ?"
 
+accept_notification = """UPDATE S_UserNotifications SET IsAccepted = ?, IsRead = 1 
+                        WHERE NotificationId = ? AND ToUserEmail = ?"""
+
 get_notification_params = """SELECT FromUserEmail, NotificationParams FROM S_UserNotifications 
                                     WHERE NotificationId = ? AND ToUserEmail = ?"""

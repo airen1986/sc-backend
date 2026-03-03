@@ -115,10 +115,15 @@ def save_as_model(cursor, user_email: str, model_name: str, project_name: str,
     if os.path.exists(new_model_path):
         raise Exception("Model with same UID already exists")
     
-    created = add_user_model( cursor, db_uid, new_model_name, new_project_name, new_model_path,
-                        new_user_email, template_name, "owner" )
+    new_project_id = get_project_id(cursor, new_user_email, new_project_name)
+    if not new_project_id:
+        raise Exception("New project not found")
     
-    if created:
+    role = "owner"
+    model_id = cursor.execute(model_queries.insert_models, (db_uid, new_model_name, new_user_email, template_name)).fetchone()[0]   
+    cursor.execute(model_queries.insert_user_models, (model_id, new_user_email, new_project_id, role, new_model_name))
+    
+    if model_id:
         connection = apsw.Connection(old_model_path)
         connection.execute(f"VACUUM INTO '{new_model_path}'")
         connection.close()
@@ -273,7 +278,7 @@ def accept_model_share(cursor, notification_id: int, new_model_name: str, new_pr
     project_name = notification_params.get("project_name")
     access_level = notification_params.get("access_level")
 
-    old_model_id, old_model_path = get_model_id_and_path(cursor, model_name, project_name, from_user_email)
+    old_model_id, _ = get_model_id_and_path(cursor, model_name, project_name, from_user_email)
 
     if not old_model_id:
         raise Exception("Model not found for sharing")
@@ -292,28 +297,9 @@ def accept_model_share(cursor, notification_id: int, new_model_name: str, new_pr
             new_model_id, _ = get_model_id_and_path(cursor, new_model_name, new_project_name, to_user_email)
             if new_model_id:
                 raise Exception("User already has a model with the same name in the project")
-
-        model_row = cursor.execute("SELECT ModelPath FROM S_Models WHERE ModelId = ?", (model_id,)).fetchone()
-        if not model_row:
-            raise Exception("Model not found for sharing")
-        
-        model_path = model_row[0]
-
-        new_db_uid = str(uuid.uuid4())
-        new_db_path = os.path.join(DATA_FOLDER, f"{new_db_uid}.sqlite3")
-        if os.path.exists(new_db_path):
-            raise Exception("Model with same UID already exists")
-
-        connection = apsw.Connection(model_path)
-        connection.execute(f"VACUUM INTO '{new_db_path}'")
-        connection.close()
-
-        template_name = cursor.execute(model_queries.get_template_name, (model_id,)).fetchone()[0]
-
-        new_model_id = cursor.execute(model_queries.insert_models, (new_db_uid, new_db_path, user_email, template_name)).fetchone()[0]
-
-        project_id = get_project_id(cursor, user_email, new_project_name)
-        if not project_id:
-            raise Exception("Project not found for user")
-
-        cursor.execute(model_queries.insert_user_models, (new_model_id, user_email, project_id, "editor", new_model_name))
+            cursor.execute(model_queries.insert_user_models, (model_id, to_user_email, project_id, access_level, 
+                                                              new_model_name))
+        cursor.execute(model_queries.accept_notification, (1, notification_id, user_email))
+    else:
+        # If user rejects the share request, we can optionally delete the notification or mark it as rejected. For now, we will just mark it as read.
+        cursor.execute(model_queries.accept_notification, (0, notification_id, user_email))
