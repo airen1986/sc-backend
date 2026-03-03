@@ -23,7 +23,7 @@ SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PWD = os.getenv("SMTP_PWD")
 master_db = os.getenv("DB_PATH")
 DATA_FOLDER = Path(os.getenv("DATA_FOLDER"))
-
+MAX_BACKUPS = int(os.getenv("MAX_BACKUPS", 10))
 TEMP_FOLDER = DATA_FOLDER / "temp"
 BACKUP_FOLDER = DATA_FOLDER / "backup"
 DATA_FOLDER = DATA_FOLDER / "models"
