@@ -32,6 +32,10 @@ def add_new_model(cursor, model_name: str, project_name: str, user_name: str, te
     cursor.execute(model_queries.insert_user_models, (model_id, user_name, project_id, role, model_name))
 
 def get_model_id_and_path(cursor, model_name: str, project_name: str, user_name: str):
+
+    if model_name.strip() == "" or project_name.strip() == "":
+        raise Exception("Model name and project name cannot be empty")
+
     row = cursor.execute(model_queries.get_model_id_and_path, (project_name, model_name, user_name)).fetchone()
     if row:
         return row[0], row[1]
