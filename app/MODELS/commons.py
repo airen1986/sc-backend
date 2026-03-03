@@ -1,6 +1,7 @@
+from fastapi import File, UploadFile, responses
 from . import queries as model_queries
-from app.CONFIG.config import DATA_FOLDER, BACKUP_FOLDER, MAX_BACKUPS
-import os, uuid, sqlite3, apsw, json
+from app.CONFIG.config import DATA_FOLDER, BACKUP_FOLDER, MAX_BACKUPS, TEMP_FOLDER
+import os, uuid, sqlite3, apsw, json, tempfile, shutil
 
 
 def get_project_id(cursor, user_name: str, project_name: str):
@@ -251,6 +252,10 @@ def share_model(cursor, from_user_email: str, to_user_email: str, model_name: st
     if from_user_access_level != "owner":
         raise Exception("Only owner can share the model")
     
+    row = cursor.execute(model_queries.get_access_level, (model_id, to_user_email)).fetchone()
+    if row:
+        raise Exception("Model already shared with the user")
+    
     notification_data = {model_id: model_id, model_name: model_name, 
                             project_name: project_name, access_level: access_level}
     title = "Model Share Request"
@@ -271,7 +276,7 @@ def accept_model_share(cursor, notification_id: int, new_model_name: str, new_pr
         raise Exception("Notification not found")
     
     if not accept:
-        cursor.execute(model_queries.accept_notification, (0, notification_id, user_email))
+        cursor.execute(model_queries.accept_notification, (-1, notification_id, user_email))
         return
 
     from_user_email = notification_row[0]
@@ -300,4 +305,114 @@ def accept_model_share(cursor, notification_id: int, new_model_name: str, new_pr
         cursor.execute(model_queries.insert_user_models, (model_id, user_email, project_id, access_level, 
                                                             new_model_name))
     cursor.execute(model_queries.accept_notification, (1, notification_id, user_email))
+
+def get_user_notifications(cursor, user_email: str):
+    rows = cursor.execute(model_queries.get_user_notifications, (user_email,)).fetchall()
+    notifications = []
+    for notification_id, from_user_email, title, message, notification_type, is_read, is_accepted in rows:
+        is_read = bool(is_read)
+        is_accepted = bool(is_accepted) if is_accepted is not None else None
+        notifications.append({
+            "notification_id": notification_id,
+            "from_user_email": from_user_email,
+            "title": title,
+            "message": message,
+            "notification_type": notification_type,
+            "is_read": is_read,
+            "is_accepted": is_accepted
+        })
+    return notifications
+
+def download_model(cursor, user_email: str, model_name: str, project_name: str):
+    model_id, model_path = get_model_id_and_path(cursor, model_name, project_name, user_email)
+    if not model_id:
+        raise Exception("Model not found")
     
+    access_level = cursor.execute(model_queries.get_access_level, (model_id, user_email)).fetchone()[0]
+    
+    if access_level not in ["owner", "editor"]:
+        raise Exception("Only owner and editor can download the model")
+    
+    if not os.path.exists(model_path):
+        raise Exception("Model file not found on disk")
+    
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".db", dir=TEMP_FOLDER)
+    tmp.close()  # Close the file so that it can be used by other processes
+
+    connection = apsw.Connection(model_path)
+    connection.execute(f"VACUUM INTO '{tmp.name}'")
+    connection.close()
+
+    # 3. Return file
+    return responses.FileResponse(
+        path=tmp.name,
+        filename=f"{model_name}.db",
+        media_type="application/octet-stream"
+    )
+
+def upload_model(cursor, user_email: str, project_name: str, model_name: str, model_file: UploadFile = File(...)):
+    model_id, model_path = get_model_id_and_path(cursor, model_name, project_name, user_email)
+    if not model_id:
+        raise Exception("Model not found")
+    
+    access_level = cursor.execute(model_queries.get_access_level, (model_id, user_email)).fetchone()[0]
+    
+    if access_level not in ["owner", "editor"]:
+        raise Exception("Only owner and editor can upload the model")
+    
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".db", dir=TEMP_FOLDER)
+    tmp.close()
+
+    with open(tmp.name, "wb") as buffer:
+        shutil.copyfileobj(model_file.file, buffer)
+
+    backup_connection = apsw.Connection(tmp.name)
+    this_connection = apsw.Connection(model_path)
+
+    with this_connection.backup("main", backup_connection, "main") as backup:
+            backup.step()  # copy entire database in one step
+
+    this_connection.close()
+    backup_connection.close()
+
+def get_model_info(cursor, user_email: str, model_name: str, project_name: str):
+    model_id, _ = get_model_id_and_path(cursor, model_name, project_name, user_email)
+    if not model_id:
+        raise Exception("Model not found")
+    
+    access_level = cursor.execute(model_queries.get_access_level, (model_id, user_email)).fetchone()[0]
+    
+    owner_email, template_name = cursor.execute(model_queries.get_model_info, (model_id,)).fetchone()
+
+    access_user_list = []
+    if owner_email != user_email:
+        for user_id, access_level in cursor.execute(model_queries.get_users_for_model, 
+                                                    (model_id, owner_email)).fetchall():
+            access_user_list.append({"user_email": user_id, "access_level": access_level})
+    
+    return {
+        "model_name": model_name,
+        "project_name": project_name,
+        "access_level": access_level,
+        "owner_email": owner_email,
+        "template_name": template_name,
+        "access_user_list": access_user_list
+    }
+
+def update_model_access_level(cursor, user_email: str, model_name: str, project_name: str, access_list: list):
+    model_id, _ = get_model_id_and_path(cursor, model_name, project_name, user_email)
+    if not model_id:
+        raise Exception("Model not found")
+    
+    from_user_access_level = cursor.execute(model_queries.get_access_level, (model_id, user_email)).fetchone()[0]
+    
+    if from_user_access_level != "owner":
+        raise Exception("Only owner can update access level")
+    
+    for access_user, access_level in access_list:
+        if access_user == user_email:
+            continue
+        if access_level == "delete":
+            cursor.execute(model_queries.delete_user_model, (model_id, access_user))
+        else:
+            cursor.execute(model_queries.update_user_access_level, (access_level, model_id, access_user))

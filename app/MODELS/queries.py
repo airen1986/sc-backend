@@ -77,10 +77,31 @@ add_user_notifications = """INSERT INTO S_UserNotifications (
                                     VALUES (?, ?, ?, ?, ?, ?, 0,0)
                                     RETURNING NotificationId"""
 
-read_notification = "UPDATE S_UserNotifications SET IsRead = 1 WHERE NotificationId = ? AND ToUserEmail = ?"
+read_notification = "UPDATE S_UserNotifications SET IsRead = 1, ReadAt = CURRENT_TIMESTAMP WHERE NotificationId = ? AND ToUserEmail = ?"
 
-accept_notification = """UPDATE S_UserNotifications SET IsAccepted = ?, IsRead = 1 
+accept_notification = """UPDATE S_UserNotifications SET IsAccepted = ?, IsRead = 1, ReadAt = CURRENT_TIMESTAMP
                         WHERE NotificationId = ? AND ToUserEmail = ?"""
 
 get_notification_params = """SELECT FromUserEmail, NotificationParams FROM S_UserNotifications 
                                     WHERE NotificationId = ? AND ToUserEmail = ?"""
+
+get_user_notifications = """SELECT NotificationId, FromUserEmail, Title, Message, NotificationType, 
+                                    IsRead, IsAccepted
+                            FROM S_UserNotifications
+                            WHERE ToUserEmail = ?
+                            AND   (CreatedAt > datetime('now', '-7 days') OR IsAccepted = 0) 
+                            -- keep notifications for 7 days or until accepted/rejected"""
+
+
+get_model_details = """select OwnerId, TemplateName from S_Models
+                        where ModelId = ?"""
+
+get_users_for_model = """SELECT S_UserModels.UserId, S_UserModels.AccessLevel
+                        FROM S_UserModels
+                        WHERE S_UserModels.ModelId = ?
+                        AND S_UserModels.UserId != ?""" # exclude owner
+
+update_user_access_level = """UPDATE S_UserModels
+                                SET AccessLevel = ?
+                                WHERE ModelId = ?
+                                AND UserId = ?""";
