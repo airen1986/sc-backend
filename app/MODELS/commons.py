@@ -4,12 +4,6 @@ from app.CONFIG.config import DATA_FOLDER, BACKUP_FOLDER, MAX_BACKUPS, TEMP_FOLD
 import os, uuid, sqlite3, apsw, json, tempfile, shutil
 
 
-def get_project_id(cursor, user_name: str, project_name: str):
-    row = cursor.execute(model_queries.get_project_id, (user_name, project_name)).fetchone()
-    if not row:
-        raise Exception("Project does not exist for user")
-    return row[0]
-
 def add_new_model(cursor, model_name: str, project_name: str, user_name: str, template_name: str):
 
     project_id = get_project_id(cursor, user_name, project_name)
@@ -31,16 +25,6 @@ def add_new_model(cursor, model_name: str, project_name: str, user_name: str, te
     role = "owner"
     model_id = cursor.execute(model_queries.insert_models, (db_uid, db_path, user_name, template_name)).fetchone()[0]   
     cursor.execute(model_queries.insert_user_models, (model_id, user_name, project_id, role, model_name))
-
-def get_model_id_and_path(cursor, model_name: str, project_name: str, user_name: str):
-
-    if model_name.strip() == "" or project_name.strip() == "":
-        raise Exception("Model name and project name cannot be empty")
-
-    row = cursor.execute(model_queries.get_model_id_and_path, (project_name, model_name, user_name)).fetchone()
-    if row:
-        return row[0], row[1]
-    return None, None
 
 def move_model_to_project(cursor, user_email: str, model_name: str, old_project_name: str, new_project_name: str) -> int:
     old_model_id, _ = get_model_id_and_path(cursor, model_name, old_project_name, user_email)
@@ -65,30 +49,6 @@ def move_model_to_project(cursor, user_email: str, model_name: str, old_project_
 def get_model_templates(cursor, user_email: str):
     rows = cursor.execute(model_queries.get_model_templates, (user_email,)).fetchall()
     return [row[0] for row in rows]
-
-def get_template_sql_file(cursor, user_email: str, template_name: str, with_data: bool = False):
-    all_templates = get_model_templates(cursor, user_email)
-    if template_name not in all_templates:
-        raise Exception("User dont have access to the template")
-    
-    column_name = "TemplateSQLWithData" if with_data else "TemplateSQL"
-    this_query = model_queries.get_template_sql_file.format(column_name=column_name)
-    row = cursor.execute(this_query, (template_name,)).fetchone()
-
-    if not row:
-        raise Exception("Template not found")
-    
-    file_name = row[0]
-    this_parent_dir = os.path.dirname(os.path.abspath(__file__))
-    this_parent_dir = os.path.dirname(this_parent_dir)
-    schema_dir = os.path.join(this_parent_dir, "SCHEMA")
-
-    sql_file = os.path.join(schema_dir, file_name)
-
-    if not os.path.isfile(sql_file):
-        raise Exception("SQL file for template not found")
-
-    return sql_file
 
 def get_user_models_by_project(cursor, user_email: str):
     rows = cursor.execute(model_queries.get_user_models_by_project, (user_email,)).fetchall()
@@ -416,3 +376,45 @@ def update_model_access_level(cursor, user_email: str, model_name: str, project_
             cursor.execute(model_queries.delete_user_model, (model_id, access_user))
         else:
             cursor.execute(model_queries.update_user_access_level, (access_level, model_id, access_user))
+
+
+# Common functions, not exposed as an endpoint
+
+def get_project_id(cursor, user_name: str, project_name: str):
+    row = cursor.execute(model_queries.get_project_id, (user_name, project_name)).fetchone()
+    if not row:
+        raise Exception("Project does not exist for user")
+    return row[0]
+
+def get_model_id_and_path(cursor, model_name: str, project_name: str, user_name: str):
+    if model_name.strip() == "" or project_name.strip() == "":
+        raise Exception("Model name and project name cannot be empty")
+
+    row = cursor.execute(model_queries.get_model_id_and_path, (project_name, model_name, user_name)).fetchone()
+    if row:
+        return row[0], row[1]
+    return None, None
+
+def get_template_sql_file(cursor, user_email: str, template_name: str, with_data: bool = False):
+    all_templates = get_model_templates(cursor, user_email)
+    if template_name not in all_templates:
+        raise Exception("User dont have access to the template")
+    
+    column_name = "TemplateSQLWithData" if with_data else "TemplateSQL"
+    this_query = model_queries.get_template_sql_file.format(column_name=column_name)
+    row = cursor.execute(this_query, (template_name,)).fetchone()
+
+    if not row:
+        raise Exception("Template not found")
+    
+    file_name = row[0]
+    this_parent_dir = os.path.dirname(os.path.abspath(__file__))
+    this_parent_dir = os.path.dirname(this_parent_dir)
+    schema_dir = os.path.join(this_parent_dir, "SCHEMA")
+
+    sql_file = os.path.join(schema_dir, file_name)
+
+    if not os.path.isfile(sql_file):
+        raise Exception("SQL file for template not found")
+
+    return sql_file
