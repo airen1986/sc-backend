@@ -5,13 +5,13 @@ import os, uuid, sqlite3, apsw, json
 
 def get_project_id(cursor, user_name: str, project_name: str):
     row = cursor.execute(model_queries.get_project_id, (user_name, project_name)).fetchone()
-    return row[0] if row else None
+    if not row:
+        raise Exception("Project does not exist for user")
+    return row[0]
 
 def add_new_model(cursor, model_name: str, project_name: str, user_name: str, template_name: str):
 
     project_id = get_project_id(cursor, user_name, project_name)
-    if not project_id:
-        raise Exception("Project does not exist for user")
     
     model_id, _ = get_model_id_and_path(cursor, model_name, project_name, user_name)
     if model_id:
@@ -47,8 +47,6 @@ def move_model_to_project(cursor, user_email: str, model_name: str, old_project_
         raise Exception("Model already exists in the new project")
     
     new_project_id = get_project_id(cursor, user_email, new_project_name)
-    if not new_project_id:
-        raise Exception("New project not found")
 
     old_project_id = get_project_id(cursor, user_email, old_project_name)
 
@@ -116,8 +114,6 @@ def save_as_model(cursor, user_email: str, model_name: str, project_name: str,
         raise Exception("Model with same UID already exists")
     
     new_project_id = get_project_id(cursor, new_user_email, new_project_name)
-    if not new_project_id:
-        raise Exception("New project not found")
     
     role = "owner"
     model_id = cursor.execute(model_queries.insert_models, (db_uid, new_model_name, new_user_email, template_name)).fetchone()[0]   
@@ -270,7 +266,10 @@ def accept_model_share(cursor, notification_id: int, new_model_name: str, new_pr
     if not notification_row:
         raise Exception("Notification not found")
     
-    to_user_email = user_email
+    if not accept:
+        cursor.execute(model_queries.accept_notification, (0, notification_id, user_email))
+        return
+
     from_user_email = notification_row[0]
     notification_params = json.loads(notification_row[1])
     model_id = notification_params.get("model_id")
@@ -286,20 +285,15 @@ def accept_model_share(cursor, notification_id: int, new_model_name: str, new_pr
     if old_model_id != model_id:
         raise Exception("Model ID mismatch")
 
-    if accept:
-        if create_copy:
-            save_as_model(cursor, from_user_email, model_name, project_name, 
-                          new_model_name, new_project_name, user_email)
-        else:
-            project_id = get_project_id(cursor, user_email, new_project_name)
-            if not project_id:
-                raise Exception("Project not found for user")
-            new_model_id, _ = get_model_id_and_path(cursor, new_model_name, new_project_name, to_user_email)
-            if new_model_id:
-                raise Exception("User already has a model with the same name in the project")
-            cursor.execute(model_queries.insert_user_models, (model_id, to_user_email, project_id, access_level, 
-                                                              new_model_name))
-        cursor.execute(model_queries.accept_notification, (1, notification_id, user_email))
+    if create_copy:
+        save_as_model(cursor, from_user_email, model_name, project_name, 
+                        new_model_name, new_project_name, user_email)
     else:
-        # If user rejects the share request, we can optionally delete the notification or mark it as rejected. For now, we will just mark it as read.
-        cursor.execute(model_queries.accept_notification, (0, notification_id, user_email))
+        project_id = get_project_id(cursor, user_email, new_project_name)
+        new_model_id, _ = get_model_id_and_path(cursor, new_model_name, new_project_name, user_email)
+        if new_model_id:
+            raise Exception("User already has a model with the same name in the project")
+        cursor.execute(model_queries.insert_user_models, (model_id, user_email, project_id, access_level, 
+                                                            new_model_name))
+    cursor.execute(model_queries.accept_notification, (1, notification_id, user_email))
+    
